@@ -364,3 +364,83 @@ document.addEventListener("keydown", (e) => {
 document
   .querySelectorAll("[data-camera]")
   .forEach((button) => button.addEventListener("click", () => closeMorona()));
+  /*
+ * 12.CONTROL DE SONIDO.
+ * Comienza apagado y actualiza el icono al pulsar el botón.
+ */
+const soundButton = document.querySelector("#sound-toggle");
+const soundIcon = document.querySelector("#sound-icon");
+
+let soundEnabled = false;
+
+function updateSoundButton() {
+  soundButton.setAttribute("aria-pressed", String(soundEnabled));
+
+  soundIcon.textContent = soundEnabled ? "🔊" : "🔇";
+
+  soundButton.title = soundEnabled
+    ? "Silenciar efectos de sonido"
+    : "Activar efectos de sonido";
+}
+
+soundButton.addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  updateSoundButton();
+
+  if (soundEnabled) {
+    playClickSound();
+  }
+});
+
+updateSoundButton();
+
+/*
+ * EFECTO DE SONIDO.
+ * Genera un tono breve cuando el sonido está activado.
+ */
+let audioContext = null;
+
+async function playClickSound() {
+  if (!soundEnabled) return;
+
+  try {
+    // Crea el sistema de audio una sola vez y lo reutiliza.
+    if (!audioContext) {
+      audioContext = new AudioContext();
+    }
+
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+
+    // Comprueba de nuevo el estado después de la espera.
+    if (!soundEnabled || audioContext.state !== "running") return;
+
+    const oscillator = audioContext.createOscillator();
+    const volume = audioContext.createGain();
+    const now = audioContext.currentTime;
+
+    // Define el tono y una bajada rápida de frecuencia.
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(650, now);
+    oscillator.frequency.exponentialRampToValueAtTime(420, now + 0.08);
+
+    // Suaviza el inicio y el final del sonido.
+    volume.gain.setValueAtTime(0, now);
+    volume.gain.linearRampToValueAtTime(0.035, now + 0.005);
+    volume.gain.linearRampToValueAtTime(0, now + 0.09);
+
+    oscillator.connect(volume);
+    volume.connect(audioContext.destination);
+
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      volume.disconnect();
+    };
+
+    oscillator.start(now);
+    oscillator.stop(now + 0.1);
+  } catch (error) {
+    console.warn("No se pudo reproducir el efecto de sonido.", error);
+  }
+}

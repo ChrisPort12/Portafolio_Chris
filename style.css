@@ -2346,3 +2346,22 @@ h1 span {
     animation: none !important;
   }
 }
+/* *19. CONTROL DE SONIDO. */
+/* Control de sonido compacto, con espacio suficiente para tocarlo. */
+/* Botón compacto con la misma altura que los demás controles. */
+.hud-tools #sound-toggle {
+  width: 44px;
+  height: auto;
+  align-self: stretch;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hud-tools #sound-toggle #sound-icon {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1;
+}
