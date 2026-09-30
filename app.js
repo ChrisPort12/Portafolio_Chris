@@ -66,14 +66,14 @@ function showProjectList(focus = false) {
         >
           <span class="project-number">${p.n}</span
           ><span class="project-icon" aria-hidden="true"
-            >${["R", "GR", "Z", "{}"][i]}</span
+            >${["R", "GR", "Z", "ZO"][i]}</span
           ><span class="project-label"
             ><strong
-              >${["Rutta", "Gryffindor", "Ocarina of Time", "Catálogo API"][
+              >${["Rutta", "Gryffindor", "Ocarina of Time", "Web de Zelda"][
                 i
               ]}</strong
             ><small
-              >${["E-COMMERCE", "HACKATHON", "SITIO WEB", "JAVASCRIPT"][
+              >${["E-COMMERCE", "HACKATHON", "SITIO WEB", "WEB MONOGRAFIA DE ZELDA"][
                 i
               ]}</small
             ></span

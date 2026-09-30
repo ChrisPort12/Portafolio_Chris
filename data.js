@@ -47,11 +47,11 @@ const projects = [
   },
   {
     n: "04",
-    name: "Catálogo con API",
-    type: "LABORATORIO · JAVASCRIPT ASÍNCRONO",
-    text: "Práctica de consumo de una API para mostrar productos y consultar sus detalles en un modal. Trabajo con módulos, programación asíncrona, manipulación del DOM y delegación de eventos.",
-    stack: ["JavaScript", "API", "DOM"],
-    repo: "ChrisPort12/async",
+    name: "Web Monografía de Zelda",
+    type: "LABORATORIO · GIT & GITHUB",
+    text: "Proyecto práctico enfocado en desarrollar una página web académica sobre el origen, evolución y legado de la saga de videojuegos The Legend of Zelda. El uso de Git y GitHub. Trabajé con repositorios, ramas, commits e integración de cambios como parte de un flujo de trabajo con control de versiones.",
+    stack: ["Git", "GitHub", "HTML5", "CSS3"],
+    repo: "ChrisPort12/git-lab-mono",
   },
 ];
 /*
