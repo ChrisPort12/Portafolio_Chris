@@ -130,7 +130,8 @@ function openProject(index) {
     .addEventListener("click", () => showProjectList(true));
   document.querySelector("#project-status").textContent =
     "MISIÓN " + p.n + " / DETALLES";
-  setCamera("projects");
+  playEffect("project");
+  setCamera("projects", false);
   projectList.querySelector("article").focus({ preventScroll: true });
   document.querySelector("#announcement").textContent =
     "Proyecto " + p.name + " abierto en la pared.";
@@ -188,6 +189,7 @@ function showTerminal(key, zoom = true) {
       }
     });
   if (zoom) {
+    if (camera === "terminal") playEffect("click");
     setCamera("terminal");
     terminalContent.focus({ preventScroll: true });
   }
@@ -203,28 +205,31 @@ document
  * al personaje.
  */
 function cameraTransform() {
-  const w = window.innerWidth,
-    h = window.innerHeight,
-    mobile = w <= 760;
+  const w = document.documentElement.clientWidth;
+  const h = document.documentElement.clientHeight;
+  const mobile = w <= 760;
   let scale, cx, cy;
   if (camera === "overview") {
+    world.style.top = "50%";
     scale = Math.min(w / 1672, h / 941) * 0.985;
     cx = 836;
     cy = 470.5;
   } else {
+    // Reserva el espacio real del encabezado y de ambos controles inferiores.
+    const top = document.querySelector(".hud").getBoundingClientRect().bottom + 16;
+    const bottom = document.querySelector(".controls").getBoundingClientRect().top - 24;
+    const height = Math.max(1, bottom - top);
+    world.style.top = `${top + height / 2}px`;
     const targets = {
       projects: { x: 655, y: 326, w: 345, h: 468 },
       skills: { x: 1180, y: 428, w: 390, h: 455 },
       terminal: { x: 594, y: 767, w: 470, h: 365 },
     };
-    const t = targets[camera];
-    scale = Math.min(
-      (w - (mobile ? 26 : 100)) / t.w,
-      (h - (mobile ? 220 : 170)) / t.h,
-      mobile ? 1.65 : 1.85,
-    );
-    cx = t.x;
-    cy = t.y - (mobile ? 10 : 0) / scale;
+    const target = targets[camera];
+    scale = Math.min((w - (mobile ? 26 : 100)) / target.w,
+      height / target.h, mobile ? 1.65 : 1.85);
+    cx = target.x;
+    cy = target.y;
   }
   world.style.setProperty("--scale", String(Math.max(0.1, scale)));
   world.style.setProperty("--cx", String(cx));
@@ -234,9 +239,12 @@ function cameraTransform() {
  * 07. NAVEGACIÓN POR LA HABITACIÓN. Actualiza las clases camera-..., el menú inferior y el
  * botón de regreso. Esc devuelve la vista general.
  */
-function setCamera(next) {
+function setCamera(next, effect = "auto") {
   if (!["overview", "projects", "skills", "terminal"].includes(next)) return;
+  const changed = camera !== next;
   camera = next;
+  if (effect && changed) playEffect(effect === "auto"
+    ? (next === "terminal" ? "terminal" : "click") : effect);
   document.body.className = document.body.className
     .replace(/\bcamera-\S+/g, "")
     .trim();
@@ -308,13 +316,15 @@ window.addEventListener("resize", () => {
   cancelAnimationFrame(resizeFrame);
   resizeFrame = requestAnimationFrame(cameraTransform);
 });
-showProjectList();
-showTerminal("home", false);
-world.classList.add("no-transition");
-setCamera("overview");
-requestAnimationFrame(() =>
-  requestAnimationFrame(() => world.classList.remove("no-transition")),
-);
+document.addEventListener("DOMContentLoaded", () => {
+  showProjectList();
+  showTerminal("home", false);
+  world.classList.add("no-transition");
+  setCamera("overview", false);
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => world.classList.remove("no-transition")),
+  );
+});
 document.querySelector(".viewport").addEventListener("focusin", (event) => {
   if (camera === "overview") return;
   const section = event.target.closest("#projects,#skills,#terminal");
@@ -346,14 +356,19 @@ morona.addEventListener("click", () => {
   moronaMessage.textContent = moronaFound
     ? "¡Volviste! Morona siempre tiene tiempo para una caricia."
     : "Guardiana del código y experta en pedir premios.";
+  playEffect("morona");
   moronaFound = true;
   celebrateMorona();
   document.querySelector("#morona-close").focus({ preventScroll: true });
 });
 document
   .querySelector("#morona-close")
-  .addEventListener("click", () => closeMorona(true));
+  .addEventListener("click", () => {
+    playEffect("click");
+    closeMorona(true);
+  });
 document.querySelector("#morona-pet").addEventListener("click", () => {
+  playEffect("click");
   moronaMessage.textContent =
     "¡Guau! Morona te manda un lametón. Ya eres parte de su equipo.";
   celebrateMorona();
@@ -364,83 +379,136 @@ document.addEventListener("keydown", (e) => {
 document
   .querySelectorAll("[data-camera]")
   .forEach((button) => button.addEventListener("click", () => closeMorona()));
-  /*
- * 12.CONTROL DE SONIDO.
- * Comienza apagado y actualiza el icono al pulsar el botón.
+
+/*
+ * 12. SONIDO. Todos los archivos, volúmenes y controles de audio están aquí.
+ * Los efectos y la música tienen estados independientes. No se genera ningún tono.
  */
 const soundButton = document.querySelector("#sound-toggle");
-const soundIcon = document.querySelector("#sound-icon");
+const musicButton = document.querySelector("#music-toggle");
+let soundEnabled = true;
+let musicEnabled = true;
+const effects = Object.fromEntries(Object.entries({
+  click: "click-ui.mp3",
+  project: "project-open.mp3",
+  terminal: "terminal-open.mp3",
+  morona: "morona-found.mp3",
+  intro: "intro.mp3",
+}).map(([name, file]) => {
+  const audio = new Audio(`assets/sounds/${file}`);
+  audio.preload = "auto";
+  audio.volume = name === "morona" ? 0.12 : name === "intro" ? 0.35 : 0.3;
+  return [name, audio];
+}));
+const music = new Audio("assets/sounds/ambient.mp3");
+music.preload = "none";
+music.loop = true;
+const MUSIC_VOLUME = 0.16; // Fondo al 16%; ajusta este valor entre 0 y 1.
+music.volume = MUSIC_VOLUME;
 
-let soundEnabled = false;
-
-function updateSoundButton() {
+function updateAudioButtons() {
   soundButton.setAttribute("aria-pressed", String(soundEnabled));
+  soundButton.title = soundEnabled ? "Silenciar efectos" : "Activar efectos";
+  document.querySelector("#sound-icon").textContent = soundEnabled ? "🔊" : "🔇";
+  musicButton.setAttribute("aria-pressed", String(musicEnabled));
+  musicButton.title = musicEnabled ? "Silenciar música de fondo" : "Activar música de fondo";
+  document.querySelector("#music-icon").textContent = musicEnabled ? "♫" : "♫̸";
+}
 
-  soundIcon.textContent = soundEnabled ? "🔊" : "🔇";
+function stopEffects() {
+  Object.values(effects).forEach((audio) => {
+    audio.pause();
+    audio.currentTime = 0;
+  });
+}
 
-  soundButton.title = soundEnabled
-    ? "Silenciar efectos de sonido"
-    : "Activar efectos de sonido";
+function playEffect(name) {
+  if (!soundEnabled || document.hidden) return;
+  const audio = effects[name];
+  if (!audio) return;
+  stopEffects(); // Evita amontonar sonidos cuando se pulsa rápidamente.
+  audio.play().catch((error) => {
+    if (!["AbortError", "NotAllowedError"].includes(error.name)) console.warn("No se pudo reproducir el efecto:", name);
+  });
+}
+
+function resumeMusic() {
+  if (!musicEnabled || document.hidden) return;
+  music.play().catch((error) => {
+    if (["AbortError", "NotAllowedError"].includes(error.name)) return;
+    musicEnabled = false;
+    updateAudioButtons();
+  });
 }
 
 soundButton.addEventListener("click", () => {
   soundEnabled = !soundEnabled;
-  updateSoundButton();
-
-  if (soundEnabled) {
-    playClickSound();
-  }
+  if (soundEnabled) playEffect("click");
+  else stopEffects();
+  updateAudioButtons();
+});
+musicButton.addEventListener("click", () => {
+  musicEnabled = !musicEnabled;
+  if (musicEnabled) resumeMusic();
+  else music.pause();
+  updateAudioButtons();
 });
 
-updateSoundButton();
+// Pausa al salir de la pestaña; solo retoma la música si seguía activada.
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    stopEffects();
+    music.pause();
+  } else resumeMusic();
+});
 
-/*
- * EFECTO DE SONIDO.
- * Genera un tono breve cuando el sonido está activado.
+/* INTRODUCCIÓN. Comienza directamente; cuando el navegador permite el audio,
+ * la barra se sincroniza con tres segundos de reproducción. Si lo bloquea,
+ * la carga continúa en silencio, sin botones ni avisos adicionales.
  */
-let audioContext = null;
+const boot = document.querySelector(".boot");
+const pageRegions = [...document.querySelectorAll(".hud, .viewport, .controls, .skip")];
+let introTimer;
+let introPending = false;
+pageRegions.forEach((region) => { region.inert = true; });
+boot.hidden = false;
 
-async function playClickSound() {
-  if (!soundEnabled) return;
-
-  try {
-    // Crea el sistema de audio una sola vez y lo reutiliza.
-    if (!audioContext) {
-      audioContext = new AudioContext();
-    }
-
-    if (audioContext.state === "suspended") {
-      await audioContext.resume();
-    }
-
-    // Comprueba de nuevo el estado después de la espera.
-    if (!soundEnabled || audioContext.state !== "running") return;
-
-    const oscillator = audioContext.createOscillator();
-    const volume = audioContext.createGain();
-    const now = audioContext.currentTime;
-
-    // Define el tono y una bajada rápida de frecuencia.
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(650, now);
-    oscillator.frequency.exponentialRampToValueAtTime(420, now + 0.08);
-
-    // Suaviza el inicio y el final del sonido.
-    volume.gain.setValueAtTime(0, now);
-    volume.gain.linearRampToValueAtTime(0.035, now + 0.005);
-    volume.gain.linearRampToValueAtTime(0, now + 0.09);
-
-    oscillator.connect(volume);
-    volume.connect(audioContext.destination);
-
-    oscillator.onended = () => {
-      oscillator.disconnect();
-      volume.disconnect();
-    };
-
-    oscillator.start(now);
-    oscillator.stop(now + 0.1);
-  } catch (error) {
-    console.warn("No se pudo reproducir el efecto de sonido.", error);
-  }
+function finishIntro() {
+  boot.hidden = true;
+  effects.intro.pause();
+  effects.intro.currentTime = 0;
+  pageRegions.forEach((region) => { region.inert = false; });
+  resumeMusic();
 }
+function resetIntroClock() {
+  clearTimeout(introTimer);
+  boot.classList.remove("loading");
+  void boot.offsetWidth;
+  boot.classList.add("loading");
+  introTimer = window.setTimeout(finishIntro, 3000);
+}
+effects.intro.addEventListener("playing", () => {
+  if (boot.hidden) {
+    effects.intro.pause();
+    return;
+  }
+  resetIntroClock();
+});
+function tryIntro() {
+  if (boot.hidden || introPending || !soundEnabled) return;
+  introPending = true;
+  effects.intro.play().catch(() => {
+    // Si se bloquea o falla el audio, la animación termina normalmente.
+  }).finally(() => { introPending = false; });
+}
+resetIntroClock();
+tryIntro();
+
+// Se ejecuta después de los botones para respetar cualquier decisión de silenciar.
+function unlockBackground(event) {
+  if (event.target.closest("#music-toggle")) return;
+  if (boot.hidden && musicEnabled && music.paused) resumeMusic();
+}
+document.addEventListener("click", unlockBackground);
+document.addEventListener("keydown", unlockBackground);
+updateAudioButtons();

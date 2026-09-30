@@ -467,6 +467,25 @@ h1 span {
 .repo-link:hover {
   box-shadow: 0 0 12px #ffba5988;
 } /*
+ * DETALLES DEL PROYECTO.
+ * Anima el contenido al abrir una ficha.
+ */
+.project-details {
+  animation: project-enter 280ms backwards;
+}
+
+/* Muestra la ficha directamente si las animaciones están pausadas. */
+.paused .project-details {
+  animation: none !important;
+}
+
+/* Respeta la preferencia de movimiento reducido. */
+@media (prefers-reduced-motion: reduce) {
+  .project-details {
+    animation: none !important;
+  }
+}
+/*
  * 07. SKILLS. Colores y estados de los botones. Las posiciones individuales definitivas
  * están en la sección de integración física.
  */
@@ -823,6 +842,25 @@ h1 span {
 .monitor-bars i:nth-child(2n) {
   animation-duration: 2.7s;
 } /*
+ * ENTRADA DE LA TERMINAL.
+ * Anima el contenido nuevo al cambiar de apartado.
+ */
+.terminal-content > * {
+  animation: project-enter 280ms backwards;
+}
+
+/* Muestra el contenido directamente cuando las animaciones están pausadas. */
+.paused .terminal-content > * {
+  animation: none !important;
+}
+
+/* Respeta la preferencia de movimiento reducido. */
+@media (prefers-reduced-motion: reduce) {
+  .terminal-content > * {
+    animation: none !important;
+  }
+}
+/*
  * 09. ELEMENTOS DEL ESCENARIO. Nombre del personaje y acceso al perfil de GitHub.
  */
 .character-label {
@@ -1015,8 +1053,8 @@ h1 span {
   background: #1d3249;
 }
 .back-room {
-  position: absolute;
-  bottom: calc(100% + 10px);
+  position: static;
+  order: 3;
   background: #10203bef;
   border: 1px solid #608ba8;
   color: var(--cyan);
@@ -1032,8 +1070,29 @@ h1 span {
   padding: 2px 4px;
 }
 .controls:has(.back-room:not([hidden])) .room-caption {
-  visibility: hidden;
+  display: none;
 } /*
+ * MENÚ INFERIOR.
+ * Suaviza los cambios de color y marca la sección seleccionada.
+ */
+.camera-controls button {
+  transition:
+    background-color 180ms,
+    color 180ms,
+    box-shadow 180ms;
+}
+
+.camera-controls button[aria-pressed="true"] {
+  box-shadow: inset 0 -2px var(--cyan);
+}
+
+/* Cambia el estado directamente si se solicita reducir movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .camera-controls button {
+    transition: none;
+  }
+}
+/*
  * 12. ENTRADA Y ACCESIBILIDAD. Carga visual inicial y contenido solo para lectores de
  * pantalla.
  */
@@ -1041,13 +1100,14 @@ h1 span {
   position: fixed;
   inset: 0;
   z-index: 80;
-  pointer-events: none;
+  pointer-events: auto;
   background: #070d1c;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  animation: boot-out 0.5s 0.85s forwards;
+  padding: 24px;
+  text-align: center;
 }
 .boot > span {
   font:
@@ -1068,7 +1128,12 @@ h1 span {
   height: 4px;
   background: var(--cyan);
   transform-origin: left;
-  animation: load 0.85s ease-out;
+  visibility: hidden;
+}
+.boot[hidden] { display: none; }
+.boot.loading i {
+  visibility: visible;
+  animation: load 3s linear forwards;
 }
 .sr-only {
   position: absolute;
@@ -1322,8 +1387,8 @@ h1 span {
     animation: none !important;
     transition: none !important;
   }
-  .boot {
-    display: none;
+  .boot.loading i {
+    transform: none;
   }
   .particles {
     display: none;
@@ -1982,6 +2047,76 @@ h1 span {
   }
 }
 /*
+ * ENTRADA DE PROYECTOS.
+ * Las opciones aparecen suavemente, una después de otra.
+ */
+@keyframes project-enter {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.project-row {
+  animation: project-enter 350ms backwards;
+}
+
+.project-row:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.project-row:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.project-row:nth-child(4) {
+  animation-delay: 135ms;
+}
+
+/* Muestra las opciones directamente si las animaciones están pausadas. */
+.paused .project-row {
+  animation: none !important;
+}
+
+/* Respeta la preferencia de movimiento reducido del visitante. */
+@media (prefers-reduced-motion: reduce) {
+  .project-row {
+    animation: none !important;
+  }
+}
+/*
+ * INTERACCIÓN CON PROYECTOS.
+ * Resalta cada opción al pasar el cursor en dispositivos compatibles.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .project-row {
+    transition:
+      background-color 180ms,
+      transform 180ms;
+  }
+
+  .project-row:hover {
+    transform: translateX(3px);
+    background-color: #83fff618;
+  }
+}
+
+/* Conserva el resaltado, pero elimina el movimiento y la transición. */
+@media (prefers-reduced-motion: reduce) {
+  .project-row {
+    transition: none;
+  }
+
+  .project-row:hover {
+    transform: none;
+  }
+}
+/*
  * 17. MORONA. Posición del husky, mensaje de descubrimiento, salto y corazones.
  */
 
@@ -2199,135 +2334,6 @@ h1 span {
   object-fit: fill;
 }
 /*
- * ENTRADA DE PROYECTOS.
- * Las opciones aparecen suavemente, una después de otra.
- */
-@keyframes project-enter {
-  from {
-    opacity: 0;
-    transform: translateY(7px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.project-row {
-  animation: project-enter 350ms backwards;
-}
-
-.project-row:nth-child(2) {
-  animation-delay: 45ms;
-}
-
-.project-row:nth-child(3) {
-  animation-delay: 90ms;
-}
-
-.project-row:nth-child(4) {
-  animation-delay: 135ms;
-}
-
-/* Muestra las opciones directamente si las animaciones están pausadas. */
-.paused .project-row {
-  animation: none !important;
-}
-
-/* Respeta la preferencia de movimiento reducido del visitante. */
-@media (prefers-reduced-motion: reduce) {
-  .project-row {
-    animation: none !important;
-  }
-}
-/*
- * INTERACCIÓN CON PROYECTOS.
- * Resalta cada opción al pasar el cursor en dispositivos compatibles.
- */
-@media (hover: hover) and (pointer: fine) {
-  .project-row {
-    transition:
-      background-color 180ms,
-      transform 180ms;
-  }
-
-  .project-row:hover {
-    transform: translateX(3px);
-    background-color: #83fff618;
-  }
-}
-
-/* Conserva el resaltado, pero elimina el movimiento y la transición. */
-@media (prefers-reduced-motion: reduce) {
-  .project-row {
-    transition: none;
-  }
-
-  .project-row:hover {
-    transform: none;
-  }
-}
-/*
- * DETALLES DEL PROYECTO.
- * Anima el contenido al abrir una ficha.
- */
-.project-details {
-  animation: project-enter 280ms backwards;
-}
-
-/* Muestra la ficha directamente si las animaciones están pausadas. */
-.paused .project-details {
-  animation: none !important;
-}
-
-/* Respeta la preferencia de movimiento reducido. */
-@media (prefers-reduced-motion: reduce) {
-  .project-details {
-    animation: none !important;
-  }
-}
-/*
- * ENTRADA DE LA TERMINAL.
- * Anima el contenido nuevo al cambiar de apartado.
- */
-.terminal-content > * {
-  animation: project-enter 280ms backwards;
-}
-
-/* Muestra el contenido directamente cuando las animaciones están pausadas. */
-.paused .terminal-content > * {
-  animation: none !important;
-}
-
-/* Respeta la preferencia de movimiento reducido. */
-@media (prefers-reduced-motion: reduce) {
-  .terminal-content > * {
-    animation: none !important;
-  }
-}
-/*
- * MENÚ INFERIOR.
- * Suaviza los cambios de color y marca la sección seleccionada.
- */
-.camera-controls button {
-  transition:
-    background-color 180ms,
-    color 180ms,
-    box-shadow 180ms;
-}
-
-.camera-controls button[aria-pressed="true"] {
-  box-shadow: inset 0 -2px var(--cyan);
-}
-
-/* Cambia el estado directamente si se solicita reducir movimiento. */
-@media (prefers-reduced-motion: reduce) {
-  .camera-controls button {
-    transition: none;
-  }
-}
-/*
  * MENSAJE DE MORONA.
  * Anima la aparición del mensaje cuando deja de estar oculto.
  */
@@ -2346,10 +2352,13 @@ h1 span {
     animation: none !important;
   }
 }
-/* *19. CONTROL DE SONIDO. */
-/* Control de sonido compacto, con espacio suficiente para tocarlo. */
-/* Botón compacto con la misma altura que los demás controles. */
-.hud-tools #sound-toggle {
+
+/*
+ * 19. SONIDO. Controles compactos independientes para efectos y música.
+ * Conservan la altura de los botones vecinos y muestran si están activos.
+ */
+.hud-tools #sound-toggle,
+.hud-tools #music-toggle {
   width: 44px;
   height: auto;
   align-self: stretch;
@@ -2359,9 +2368,18 @@ h1 span {
   justify-content: center;
   flex-shrink: 0;
 }
-
-.hud-tools #sound-toggle #sound-icon {
+.hud-tools #sound-icon,
+.hud-tools #music-icon {
   margin: 0;
   font-size: 18px;
   line-height: 1;
+}
+.hud-tools #sound-toggle[aria-pressed="true"],
+.hud-tools #music-toggle[aria-pressed="true"] {
+  border-color: var(--cyan);
+  background: #16323b;
+}
+@media (max-width: 480px) {
+  .hud { flex-wrap: wrap; gap: 10px; }
+  .hud-tools { margin-left: auto; }
 }

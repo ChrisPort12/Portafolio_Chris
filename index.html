@@ -12,7 +12,7 @@
     <title>Christian Pinal | Dev Room</title>
     <link
       rel="icon" type="image/png"
-      href="/assets/assetsfavicon-husky.png"
+      href="assets/assetsfavicon-husky.png"
     />
     <link rel="stylesheet" href="style.css" />
   </head>
@@ -39,6 +39,10 @@
           <span id="sound-icon" aria-hidden="true">🔇</span>
         </button>
          
+        <button type="button" id="music-toggle" aria-pressed="false"
+          aria-label="Música de fondo" title="Activar música de fondo">
+          <span id="music-icon" aria-hidden="true">♫̸</span>
+        </button>
         <button id="motion" aria-pressed="false" title="Pausar las animaciones">
           Ⅱ <span>Neón activo</span></button
         ><a
@@ -210,8 +214,10 @@
       <button id="morona-pet">Darle una caricia ♥</button>
     </aside>
     <!-- 11. ENTRADA Y AVISOS. Animación inicial y texto accesible para lectores de pantalla. -->
-    <div class="boot" aria-hidden="true">
-      <span>CHRIS.DEV</span><small>ENCENDIENDO EL LABORATORIO</small><i></i>
+    <div class="boot" aria-label="Cargando el laboratorio" hidden>
+      <span>CHRIS.DEV</span>
+      <small id="boot-status" role="status">ENCENDIENDO EL LABORATORIO</small>
+      <i aria-hidden="true"></i>
     </div>
     <div class="sr-only" aria-live="polite" id="announcement"></div>
     <!-- 12. ORDEN DE CARGA. Primero se cargan los datos y después los eventos; el HTML ya existe cuando se ejecuta app.js. -->
