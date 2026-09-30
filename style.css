@@ -1,0 +1,2200 @@
+/*
+ * 01. FUENTES. Se descargan de Google Fonts. Si no hay internet, el navegador usa las
+ * fuentes alternativas declaradas.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=VT323&display=swap");
+/*
+ * 02. BASE Y VARIABLES. Colores, escala, coordenadas y reglas generales. Las variables
+ * --scale, --cx y --cy se actualizan desde JavaScript.
+ */
+:root {
+  color-scheme: dark;
+  --cyan: #83fff6;
+  --amber: #ffce7b;
+  --purple: #c3a0ff;
+  --ink: #070a19;
+  --scale: 1;
+  --cx: 768;
+  --cy: 512;
+  --tilt-left: -20deg;
+  --tilt-right: 20deg;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+body {
+  background: #060916;
+  color: #e6f9ff;
+  font:
+    16px "Space Mono",
+    monospace;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 4px;
+}
+button:disabled {
+  cursor: default;
+}
+button {
+  touch-action: manipulation;
+}
+a:hover {
+  color: var(--cyan);
+}
+.skip {
+  position: fixed;
+  top: -80px;
+  left: 10px;
+  z-index: 100;
+  padding: 10px;
+  background: #111;
+}
+.skip:focus {
+  top: 5px;
+} /*
+ * 03. HABITACIÓN Y CÁMARA. Mantiene la escena en una sola pantalla y transforma todo el
+ * escenario para acercar cada zona.
+ */
+.viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(
+    ellipse at 50% 55%,
+    #171c40 0%,
+    #090e21 45%,
+    #050713 82%
+  );
+}
+.world {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1536px;
+  height: 1024px;
+  transform-origin: 0 0;
+  transform: scale(var(--scale))
+    translate(calc(var(--cx) * -1px), calc(var(--cy) * -1px));
+  transition: transform 0.8s cubic-bezier(0.2, 0.75, 0.2, 1);
+  isolation: isolate;
+}
+.world.no-transition {
+  transition: none;
+}
+.room-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+} /*
+ * 04. HUD. Nombre del jugador, barra decorativa, descarga del CV y control de animaciones.
+ */
+.hud {
+  position: fixed;
+  inset: 22px 28px auto;
+  z-index: 15;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+}
+.player {
+  pointer-events: auto;
+  position: relative;
+  background: #0a1327ed;
+  border: 2px solid #687dba;
+  box-shadow:
+    inset 0 0 0 3px #131b3d,
+    0 0 15px #2ab9ce15;
+  padding: 13px 18px 12px;
+  clip-path: polygon(
+    8px 0,
+    100% 0,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    0 100%,
+    0 8px
+  );
+}
+.player-id {
+  color: #8fa4c4;
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+h1 {
+  font:
+    30px/0.9 "VT323",
+    monospace;
+  letter-spacing: 1px;
+  color: var(--cyan);
+  margin: 8px 0;
+  text-shadow: 0 0 8px #62ecf64a;
+}
+h1 span {
+  display: none;
+}
+.player-role {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #b4c4e8;
+}
+.energy {
+  display: flex;
+  gap: 3px;
+  height: 4px;
+  margin-top: 11px;
+}
+.energy i {
+  flex: 1;
+  background: #96acff;
+  box-shadow: 0 0 4px #778dff;
+}
+.energy i:nth-last-child(-n + 2) {
+  background: #334061;
+  box-shadow: none;
+}
+.hud-tools {
+  display: flex;
+  gap: 9px;
+  pointer-events: auto;
+}
+.hud-tools button,
+.hud-tools a {
+  border: 1px solid #4f6188;
+  background: #0e1830ed;
+  padding: 10px 13px;
+  font-size: 18px;
+  color: var(--cyan);
+  box-shadow: inset 0 0 0 2px #202845;
+}
+.hud-tools span {
+  font-size: 11px;
+  vertical-align: middle;
+  margin-left: 5px;
+} /*
+ * 05. BASE DE LOS LETREROS. Define tipografía y reacciones. La sección de integración
+ * física, más abajo, ajusta estas reglas a los marcos de la imagen final.
+ */
+.wall {
+  position: absolute;
+  transform-origin: top left;
+  z-index: 5;
+  backface-visibility: hidden;
+  background: #070f25f5;
+  border: 3px solid var(--neon);
+  box-shadow:
+    inset 0 0 18px var(--bloom),
+    0 0 5px var(--neon),
+    0 0 25px var(--bloom),
+    6px 6px 0 #030917;
+  color: var(--neon);
+  padding: 12px 18px 10px;
+  transition:
+    filter 0.3s,
+    box-shadow 0.3s;
+  animation: wall-breathe 5s ease-in-out infinite;
+}
+.wall:before,
+.terminal:before,
+.desk-monitor:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    transparent 0px,
+    transparent 4px,
+    #020b171d 5px
+  );
+  z-index: 4;
+}
+.wall:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    transparent 35%,
+    var(--bloom) 49%,
+    transparent 53%
+  );
+  background-size: 100% 350%;
+  animation: scan 9s linear infinite;
+  opacity: 0.22;
+  z-index: 4;
+}
+.project-wall {
+  --neon: var(--amber);
+  --bloom: #ffb74930;
+  left: 114px;
+  top: 333px;
+  width: 556px;
+  height: 333px;
+  transform: skewY(var(--tilt-left));
+}
+.skill-wall {
+  --neon: var(--cyan);
+  --bloom: #44f5ed36;
+  left: 844px;
+  top: 146px;
+  width: 541px;
+  height: 336px;
+  transform: skewY(var(--tilt-right));
+  animation-delay: -2s;
+}
+.wall:hover {
+  box-shadow:
+    inset 0 0 30px var(--bloom),
+    0 0 7px var(--neon),
+    0 0 42px var(--bloom),
+    6px 6px 0 #030917;
+}
+.wall-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 23px;
+  gap: 10px;
+}
+.wall-index {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: #a8bcd6;
+}
+.zoom {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  width: 28px;
+  height: 28px;
+  font-size: 24px;
+  padding: 0;
+  line-height: 1;
+}
+.zoom:hover {
+  color: white;
+  text-shadow: 0 0 6px currentColor;
+}
+.wall h2 {
+  font:
+    43px/1 "VT323",
+    monospace;
+  letter-spacing: 3px;
+  margin: 6px 0 12px;
+  text-shadow:
+    0 0 8px var(--bloom),
+    2px 2px #122d4a;
+}
+.project-wall h2 {
+  margin-bottom: 8px;
+}
+.project-row {
+  width: 100%;
+  height: 47px;
+  border: 0;
+  border-bottom: 1px solid #59432b;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  text-align: left;
+  padding: 4px 8px;
+  color: #e9d8b9;
+  position: relative;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    padding 0.2s;
+}
+.project-row:hover,
+.project-row:focus-visible {
+  background: #ffb84920;
+  color: #ffdd9f;
+  padding-left: 15px;
+  text-shadow: 0 0 9px #ffb74e70;
+}
+.project-number {
+  font:
+    22px "VT323",
+    monospace;
+  color: #b5874e;
+}
+.project-row strong {
+  font:
+    27px/0.9 "VT323",
+    monospace;
+  letter-spacing: 1px;
+}
+.project-row small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: #c2ad94;
+  margin-top: 4px;
+}
+.project-row b {
+  margin-left: auto;
+  font:
+    26px "VT323",
+    monospace;
+  color: var(--amber);
+}
+.wall-base {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  padding-top: 11px;
+  color: #b29e83;
+}
+.wall-base b {
+  margin-left: auto;
+  color: var(--amber);
+  font-size: 10px;
+}
+.signal {
+  display: flex;
+  align-items: flex-end;
+  height: 13px;
+  gap: 3px;
+}
+.signal i {
+  width: 3px;
+  background: var(--amber);
+  height: 5px;
+  animation: signal 2s ease-in-out infinite;
+}
+.signal i:nth-child(2) {
+  height: 8px;
+  animation-delay: -0.5s;
+}
+.signal i:nth-child(3) {
+  height: 10px;
+  animation-delay: -1s;
+}
+.signal i:nth-child(4) {
+  height: 13px;
+  animation-delay: -1.5s;
+} /*
+ * 06. DETALLES DE PROYECTOS. Scroll dentro del letrero, etiquetas de tecnologías y enlace
+ * al repositorio.
+ */
+.project-details {
+  height: 188px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ad8854 #0c1427;
+  padding-right: 8px;
+}
+.project-details .detail-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.project-details h3 {
+  font:
+    31px "VT323",
+    monospace;
+  letter-spacing: 1px;
+  margin: 0;
+  color: #ffe1a9;
+}
+.project-details p {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #e0d5be;
+  margin: 8px 0;
+}
+.back-projects {
+  color: #e5d2b4;
+  font:
+    12px "Space Mono",
+    monospace;
+  border: 1px solid #8d7249;
+  background: #192033;
+  padding: 6px;
+  white-space: nowrap;
+}
+.project-details .tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 9px 0;
+}
+.project-details .tags span {
+  font-size: 11px;
+  color: #e6c286;
+  border: 1px solid #665232;
+  padding: 3px 5px;
+}
+.repo-link {
+  display: inline-block;
+  color: #121627 !important;
+  background: var(--amber);
+  padding: 9px 13px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #ffe3b3;
+  margin: 5px 0 8px;
+}
+.repo-link:hover {
+  box-shadow: 0 0 12px #ffba5988;
+} /*
+ * 07. SKILLS. Colores y estados de los botones. Las posiciones individuales definitivas
+ * están en la sección de integración física.
+ */
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.skill {
+  --color: #7dffff;
+  color: var(--color);
+  background: #09243b;
+  border: 1px solid var(--color);
+  box-shadow:
+    inset 0 0 8px color-mix(in srgb, var(--color) 15%, transparent),
+    0 0 5px color-mix(in srgb, var(--color) 25%, transparent);
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 4px;
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+  text-shadow: 0 0 7px color-mix(in srgb, var(--color) 45%, transparent);
+  font:
+    22px "VT323",
+    monospace;
+  white-space: nowrap;
+}
+.skill .glyph {
+  font:
+    700 12px "Space Mono",
+    monospace;
+  border-right: 1px solid currentColor;
+  padding-right: 6px;
+  opacity: 0.8;
+}
+.skill:nth-child(3n + 2) {
+  --color: #ffd57b;
+  background: #2b222d;
+}
+.skill:nth-child(3n) {
+  --color: #d7a3ff;
+  background: #24213a;
+}
+.skill:nth-child(4),
+.skill:nth-child(8) {
+  --color: #9ff29a;
+  background: #132d2b;
+}
+.skill:hover,
+.skill:focus-visible,
+.skill.active {
+  transform: translateY(-3px);
+  background: color-mix(in srgb, var(--color) 22%, #101829);
+  box-shadow:
+    0 0 8px var(--color),
+    0 0 22px color-mix(in srgb, var(--color) 35%, transparent);
+  color: #fff;
+}
+.skill-readout {
+  border-top: 1px solid #27516b;
+  margin-top: 13px;
+  padding-top: 8px;
+  height: 57px;
+  overflow: hidden;
+}
+.skill-readout > span {
+  font:
+    17px "VT323",
+    monospace;
+  letter-spacing: 1px;
+  color: var(--cyan);
+}
+.skill-readout p {
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 3px 0;
+  color: #acd4dc;
+} /*
+ * 08. TERMINAL. Marco, pestañas, área de lectura, contactos y trayectoria.
+ */
+.terminal {
+  position: absolute;
+  left: 187px;
+  top: 592px;
+  width: 418px;
+  height: 269px;
+  transform: skewY(var(--tilt-right));
+  transform-origin: top left;
+  border: 4px solid #6a7eac;
+  box-shadow:
+    0 0 0 4px #131c38,
+    7px 8px 0 #060c22,
+    0 0 30px #67c6f724;
+  background: #081622;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.3s;
+}
+.terminal:hover {
+  box-shadow:
+    0 0 0 4px #254666,
+    7px 8px 0 #060c22,
+    0 0 35px #67c6f742;
+}
+.terminal-bar {
+  height: 30px;
+  flex-shrink: 0;
+  background: #223551;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  color: #92dadd;
+  font:
+    13px "Space Mono",
+    monospace;
+}
+.terminal-leds {
+  color: var(--cyan);
+  margin-left: auto;
+  animation: led 5s infinite;
+}
+.terminal-nav {
+  display: flex;
+  border-bottom: 1px solid #385066;
+  flex-shrink: 0;
+  background: #0a1d2e;
+}
+.terminal-nav button {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: #8ba9c4;
+  font:
+    13px "Space Mono",
+    monospace;
+  padding: 8px 4px;
+}
+.terminal-nav button[aria-pressed="true"],
+.terminal-nav button:hover {
+  color: var(--cyan);
+  background: #13354a;
+  box-shadow: inset 0 -2px var(--cyan);
+}
+.terminal-content {
+  padding: 12px 16px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #598f9a #0a1828;
+  flex: 1;
+  position: relative;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #bbd8e0;
+}
+.terminal-content h2 {
+  font:
+    29px "VT323",
+    monospace;
+  margin: 0 0 8px;
+  color: #94fff1;
+  letter-spacing: 0.4px;
+}
+.terminal-content h3 {
+  font:
+    24px "VT323",
+    monospace;
+  color: #d8e8ff;
+  margin: 14px 0 6px;
+}
+.terminal-content p {
+  font-size: 16px;
+  margin: 0 0 13px;
+  line-height: 1.6;
+}
+.terminal-content .terminal-greeting {
+  color: #92fbca;
+  font:
+    17px "Space Mono",
+    monospace;
+}
+.terminal-greeting span {
+  color: #c8a4ff;
+}
+.terminal-home p {
+  margin: 6px 0 11px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.terminal-home .terminal-command {
+  color: #ffc77b;
+  font:
+    13px "Space Mono",
+    monospace;
+}
+.terminal-content .link-btn,
+.terminal-action {
+  font:
+    12px "Space Mono",
+    monospace;
+  display: inline-block;
+  padding: 7px 9px;
+  color: var(--cyan);
+  background: #153241;
+  border: 1px solid #54838a;
+  margin: 3px 5px 6px 0;
+}
+.terminal-content .link-btn:hover,
+.terminal-action:hover {
+  color: #fff;
+  background: #204b61;
+}
+.terminal-content .tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 10px 0;
+}
+.terminal-content .tags span {
+  border: 1px solid #395262;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+.terminal-content small {
+  font-size: 12px;
+  color: var(--amber);
+}
+.checkpoint {
+  padding: 0 0 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #2b4255;
+}
+.checkpoint h3 {
+  margin-top: 5px;
+}
+.terminal-content .contact-box {
+  margin: 15px 0;
+  padding: 8px 0;
+  overflow-wrap: anywhere;
+}
+.contact-box > a {
+  color: var(--cyan);
+  font-size: 17px;
+}
+.contact-box button {
+  display: block;
+  margin-top: 8px;
+  background: #19384b;
+  border: 1px solid #537e8e;
+  padding: 6px 9px;
+  font-size: 12px;
+}
+.terminal-bottom {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #2a4357;
+  padding: 4px 12px;
+  font-size: 10px;
+  color: #83a8ba;
+  flex-shrink: 0;
+}
+.cursor {
+  animation: cursor 1.2s step-end infinite;
+  color: var(--cyan);
+  font-style: normal;
+}
+.desk-monitor {
+  position: absolute;
+  left: 990px;
+  top: 729px;
+  width: 251px;
+  height: 172px;
+  transform-origin: top left;
+  transform: skewY(var(--tilt-left));
+  background: #08172a;
+  border: 4px solid #4e82a0;
+  box-shadow:
+    0 0 0 4px #111d37,
+    6px 8px 0 #071023,
+    0 0 25px #54dafc55;
+  color: #8aceda;
+  z-index: 5;
+  padding: 7px 11px;
+  overflow: hidden;
+}
+.monitor-head {
+  border-bottom: 1px solid #345472;
+  font-size: 11px;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.monitor-head span {
+  font-size: 8px;
+  color: #72efc2;
+  animation: led 3s infinite;
+}
+.desk-monitor code {
+  font-size: 11px;
+  line-height: 1.27;
+  white-space: pre;
+}
+.code-line {
+  display: block;
+  animation: code-line 8s infinite;
+}
+.code-line:nth-child(2n) {
+  animation-delay: -1s;
+}
+.code-line:nth-child(3n) {
+  animation-delay: -3s;
+}
+.code-line b {
+  color: #bba7ff;
+  font-weight: 400;
+}
+.code-line em {
+  color: #b9df9c;
+  font-style: normal;
+}
+.monitor-bars {
+  position: absolute;
+  right: 9px;
+  bottom: 10px;
+  display: flex;
+  gap: 3px;
+  align-items: flex-end;
+  height: 34px;
+}
+.monitor-bars i {
+  display: block;
+  width: 5px;
+  height: 100%;
+  background: #46daca;
+  opacity: 0.6;
+  animation: equalizer 2s ease-in-out infinite alternate;
+  transform-origin: bottom;
+}
+.monitor-bars i:nth-child(3n) {
+  animation-delay: -0.6s;
+  background: #ac85e5;
+}
+.monitor-bars i:nth-child(3n + 1) {
+  animation-delay: -1.2s;
+}
+.monitor-bars i:nth-child(2n) {
+  animation-duration: 2.7s;
+} /*
+ * 09. ELEMENTOS DEL ESCENARIO. Nombre del personaje y acceso al perfil de GitHub.
+ */
+.character-label {
+  position: absolute;
+  top: 467px;
+  left: 691px;
+  background: #0b182bdd;
+  color: var(--cyan);
+  font:
+    25px/0.95 "VT323",
+    monospace;
+  border: 1px solid #5c9695;
+  padding: 7px 9px;
+  z-index: 9;
+  text-align: center;
+  text-shadow: 0 0 6px #5ae0e2;
+  box-shadow: 0 0 10px #44e3b124;
+  transition: box-shadow 0.2s;
+}
+.character-label span {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: #cee8ee;
+  margin-top: 4px;
+  text-shadow: none;
+}
+.character-label:hover {
+  box-shadow: 0 0 18px #44e3b16e;
+  color: white;
+}
+.github-plaque {
+  position: absolute;
+  left: 1225px;
+  top: 644px;
+  transform: skewY(var(--tilt-right));
+  color: #d4b9ff;
+  text-shadow: 0 0 10px #a469ff;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font:
+    24px "VT323",
+    monospace;
+  border: 2px solid #a884ed;
+  padding: 8px 16px;
+  background: #171332eb;
+  box-shadow: 0 0 12px #9b73de50;
+}
+.github-plaque span {
+  font-size: 28px;
+}
+.github-plaque small {
+  font:
+    11px "Space Mono",
+    monospace;
+  display: block;
+}
+.github-plaque:hover {
+  background: #342451;
+  box-shadow: 0 0 23px #b085f580;
+  color: white;
+} /*
+ * 10. LUCES Y PARTÍCULAS. Reflejos y puntos de color que animan la habitación sin mover al
+ * personaje.
+ */
+.room-light {
+  position: absolute;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  border-radius: 50%;
+  z-index: 2;
+  animation: room-breathe 6s ease-in-out infinite;
+  filter: blur(20px);
+}
+.light-cyan {
+  left: 60px;
+  top: 220px;
+  width: 650px;
+  height: 490px;
+  background: radial-gradient(ellipse, #1eeafa26, transparent 68%);
+}
+.light-purple {
+  left: 870px;
+  top: 170px;
+  width: 600px;
+  height: 550px;
+  background: radial-gradient(ellipse, #8449ff2c, transparent 65%);
+  animation-delay: -3s;
+}
+.light-amber {
+  left: 1040px;
+  top: 370px;
+  width: 400px;
+  height: 350px;
+  background: radial-gradient(ellipse, #ffa22223, transparent 65%);
+  animation-delay: -1s;
+}
+.particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 7;
+  overflow: hidden;
+}
+.particles i {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 3px;
+  height: 3px;
+  background: var(--color);
+  box-shadow: 0 0 7px var(--color);
+  animation: mote var(--duration) linear infinite;
+  animation-delay: var(--delay);
+  opacity: 0;
+}
+.floor-glow {
+  position: absolute;
+  left: 640px;
+  top: 795px;
+  width: 330px;
+  height: 100px;
+  transform: rotate(-20deg);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #497dfc1a, transparent 70%);
+  animation: room-breathe 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+} /*
+ * 11. MENÚ INFERIOR. Botones de cámara, indicaciones y regreso a la vista general.
+ */
+.controls {
+  position: fixed;
+  z-index: 16;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100% - 24px);
+}
+.room-caption {
+  font-size: 10px;
+  color: #a1bad3;
+  letter-spacing: 1.4px;
+  background: #081226df;
+  padding: 7px 12px;
+  border: 1px solid #263852;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.status-light {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+}
+.camera-controls {
+  display: flex;
+  gap: 0;
+  padding: 4px;
+  border: 1px solid #415776;
+  background: #0c172aeb;
+  box-shadow: 0 0 0 3px #0b1225;
+}
+.camera-controls button {
+  background: transparent;
+  color: #9cb3ce;
+  font-size: 12px;
+  padding: 9px 15px;
+  border: 0;
+  white-space: nowrap;
+}
+.camera-controls button + button {
+  border-left: 1px solid #2d3b54;
+}
+.camera-controls button[aria-pressed="true"] {
+  color: var(--cyan);
+  background: #162c40;
+}
+.camera-controls button:hover {
+  color: white;
+  background: #1d3249;
+}
+.back-room {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  background: #10203bef;
+  border: 1px solid #608ba8;
+  color: var(--cyan);
+  padding: 10px 14px;
+  font-size: 12px;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px #000;
+}
+.back-room kbd {
+  font-size: 10px;
+  border: 1px solid #54748b;
+  margin-left: 14px;
+  padding: 2px 4px;
+}
+.controls:has(.back-room:not([hidden])) .room-caption {
+  visibility: hidden;
+} /*
+ * 12. ENTRADA Y ACCESIBILIDAD. Carga visual inicial y contenido solo para lectores de
+ * pantalla.
+ */
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  background: #070d1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  animation: boot-out 0.5s 0.85s forwards;
+}
+.boot > span {
+  font:
+    54px "VT323",
+    monospace;
+  color: var(--cyan);
+  text-shadow: 0 0 15px #6bfeff66;
+}
+.boot small {
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-top: 14px;
+  color: #a0b8d8;
+}
+.boot i {
+  margin-top: 25px;
+  width: 210px;
+  height: 4px;
+  background: var(--cyan);
+  transform-origin: left;
+  animation: load 0.85s ease-out;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/*
+ * 13. ANIMACIONES. Cada @keyframes define los pasos que usa una propiedad animation.
+ */
+@keyframes wall-breathe {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.12);
+  }
+}
+@keyframes scan {
+  from {
+    background-position: 0 -100%;
+  }
+  to {
+    background-position: 0 200%;
+  }
+}
+@keyframes room-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes signal {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes led {
+  0%,
+  90%,
+  100% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 0.4;
+  }
+}
+@keyframes cursor {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes equalizer {
+  from {
+    transform: scaleY(0.2);
+  }
+  to {
+    transform: scaleY(0.95);
+  }
+}
+@keyframes code-line {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  20%,
+  75% {
+    opacity: 1;
+  }
+}
+@keyframes mote {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(24px, -140px);
+    opacity: 0;
+  }
+}
+@keyframes load {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes boot-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+/*
+ * 14. PAUSA. Detiene las animaciones; las preferencias de movimiento reducido también se
+ * respetan.
+ */
+.paused .world *,
+.paused .world *:before,
+.paused .world *:after {
+  animation-play-state: paused !important;
+}
+.paused .room-light {
+  opacity: 0.55;
+}
+.paused .cursor {
+  opacity: 1;
+}
+.camera-terminal .terminal {
+  border-color: #8ef5e7;
+  box-shadow:
+    0 0 0 4px #203c54,
+    7px 8px 0 #060c22,
+    0 0 35px #75fbe94d;
+}
+.camera-projects .project-wall,
+.camera-skills .skill-wall {
+  filter: brightness(1.08);
+}
+/*
+ * 15. ADAPTACIÓN A CELULAR. Ajustes para pantallas pequeñas. Hay reglas posteriores
+ * específicas de la ilustración final.
+ */
+@media (max-width: 760px) {
+  .hud {
+    inset: 12px 12px auto;
+  }
+  .player {
+    padding: 9px 12px;
+  }
+  .player-id {
+    font-size: 9px;
+  }
+  h1 {
+    font-size: 25px;
+    margin: 5px 0;
+  }
+  .player-role {
+    font-size: 8px;
+  }
+  .energy {
+    margin-top: 7px;
+    height: 3px;
+  }
+  .hud-tools {
+    gap: 5px;
+  }
+  .hud-tools button,
+  .hud-tools a {
+    padding: 8px;
+    font-size: 16px;
+  }
+  .hud-tools #motion span {
+    display: none;
+  }
+  .hud-tools span {
+    font-size: 10px;
+    margin-left: 2px;
+  }
+  .controls {
+    bottom: 14px;
+    gap: 8px;
+  }
+  .room-caption {
+    font-size: 8px;
+    letter-spacing: 0.8px;
+  }
+  .camera-controls {
+    width: 100%;
+    justify-content: center;
+  }
+  .camera-controls button {
+    font-size: 11px;
+    padding: 10px 11px;
+  }
+  .back-room {
+    font-size: 11px;
+    padding: 9px 12px;
+  }
+  .back-room kbd {
+    display: none;
+  }
+  .camera-projects .project-wall,
+  .camera-skills .skill-wall {
+    transform: skewY(0deg);
+  }
+  .camera-terminal .terminal {
+    transform: skewY(0deg);
+  }
+  .wall,
+  .terminal {
+    transition:
+      transform 0.65s ease,
+      box-shadow 0.3s;
+  }
+  .camera-projects .project-row strong {
+    font-size: 30px;
+  }
+  .camera-projects .project-row small {
+    font-size: 13px;
+  }
+  .camera-skills .skill {
+    font-size: 25px;
+  }
+  .camera-skills .skill-readout p {
+    font-size: 15px;
+  }
+  .camera-terminal .terminal-content p {
+    font-size: 19px;
+  }
+  .camera-terminal .terminal-nav button {
+    font-size: 16px;
+  }
+  .camera-terminal .terminal {
+    height: 365px;
+  }
+  .camera-terminal .terminal-content .link-btn,
+  .camera-terminal .terminal-action {
+    font-size: 15px;
+  }
+  .camera-projects .project-details p {
+    font-size: 20px;
+  }
+  .camera-projects .project-details {
+    height: 265px;
+  }
+  .camera-projects .project-wall {
+    height: 410px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .boot {
+    display: none;
+  }
+  .particles {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .camera-projects .project-wall {
+    height: 500px;
+  }
+  .camera-projects .project-row {
+    height: 82px;
+  }
+  .camera-projects .project-row strong {
+    font-size: 34px;
+  }
+  .camera-projects .project-row small {
+    font-size: 15px;
+  }
+  .camera-projects .project-number {
+    font-size: 26px;
+  }
+  .camera-projects .project-details {
+    height: 363px;
+  }
+  .camera-projects .project-details p {
+    font-size: 25px;
+  }
+  .camera-projects .project-details h3 {
+    font-size: 36px;
+  }
+  .camera-projects .back-projects,
+  .camera-projects .repo-link {
+    font-size: 21px;
+  }
+  .camera-projects .project-details .tags span {
+    font-size: 18px;
+  }
+  .camera-skills .skill-wall {
+    height: 490px;
+  }
+  .camera-skills .skill-grid {
+    gap: 12px 8px;
+  }
+  .camera-skills .skill {
+    height: 66px;
+    font-size: 29px;
+  }
+  .camera-skills .skill .glyph {
+    font-size: 18px;
+  }
+  .camera-skills .skill-readout {
+    height: 115px;
+  }
+  .camera-skills .skill-readout > span {
+    font-size: 25px;
+  }
+  .camera-skills .skill-readout p {
+    font-size: 25px;
+    line-height: 1.35;
+  }
+  .camera-terminal .terminal-home p {
+    font-size: 19px;
+  }
+  .camera-terminal .terminal-greeting {
+    font-size: 20px;
+  }
+}
+.character-label {
+  top: 410px;
+  left: 688px;
+}
+/*
+ * 16. INTEGRACIÓN FÍSICA FINAL. Alinea textos transparentes con los marcos dibujados.
+ * Estas reglas posteriores sustituyen las medidas base. left/top sitúan cada elemento;
+ * skewY sigue la inclinación del letrero. Si cambias la imagen, revisa también las
+ * coordenadas de cameraTransform en app.js.
+ */
+
+.world {
+  width: 1672px;
+  height: 941px;
+}
+.wall,
+.wall:hover {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  animation: none;
+  padding: 0;
+  filter: none;
+}
+.wall:before,
+.wall:after {
+  display: none;
+}
+.project-wall {
+  left: 515px;
+  top: 260px;
+  width: 278px;
+  height: 268px;
+  transform: skewY(-25.46deg);
+  padding: 5px 6px;
+  color: #ffd588;
+  overflow: hidden;
+}
+.project-wall h2 {
+  font:
+    38px/1 "VT323",
+    monospace;
+  letter-spacing: 1px;
+  text-align: center;
+  margin: 0 0 7px;
+  color: #ffd588;
+  text-shadow: 0 0 9px #ffb53d88;
+  animation: sign-title 5s ease-in-out infinite;
+}
+.project-row {
+  height: 47px;
+  border: 0;
+  gap: 7px;
+  padding: 2px 0;
+  color: #ffd18b;
+  transform: none;
+}
+.project-row:nth-child(2) {
+  color: #79faff;
+}
+.project-row:nth-child(3) {
+  color: #b1ed82;
+}
+.project-row:nth-child(4) {
+  color: #c9a1ff;
+}
+.project-row:hover,
+.project-row:focus-visible {
+  padding-left: 3px;
+  background: #ffffff0a;
+  color: inherit;
+  text-shadow: 0 0 12px currentColor;
+}
+.project-number {
+  font:
+    21px "VT323",
+    monospace;
+  min-width: 20px;
+  color: inherit;
+  opacity: 0.9;
+}
+.project-icon {
+  font:
+    25px/0.9 "VT323",
+    monospace;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 31px;
+  height: 34px;
+  border: 2px solid currentColor;
+  box-shadow:
+    inset 0 0 5px #ffffff17,
+    0 0 6px #ffffff17;
+}
+.project-label {
+  min-width: 0;
+}
+.project-row strong {
+  font:
+    26px/0.95 "VT323",
+    monospace;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.project-row small {
+  font:
+    15px/1 "VT323",
+    monospace;
+  letter-spacing: 1px;
+  margin-top: 3px;
+  color: inherit;
+  opacity: 0.8;
+}
+.project-row:hover .project-icon {
+  box-shadow: 0 0 10px currentColor;
+  background: #ffffff15;
+}
+.wall-base {
+  padding-top: 6px;
+  gap: 5px;
+  line-height: 1.1;
+  font-size: 7px;
+  letter-spacing: 0.3px;
+  opacity: 0.7;
+}
+.wall-base b {
+  display: none;
+}
+.signal {
+  height: 7px;
+}
+.signal i {
+  width: 2px;
+}
+.project-details {
+  height: 200px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+.project-details .detail-top {
+  gap: 4px;
+}
+.project-details h3 {
+  font:
+    26px/1 "VT323",
+    monospace;
+}
+.project-details p {
+  font:
+    17px/1.4 "Space Mono",
+    monospace;
+  margin: 8px 0;
+}
+.project-details .tags {
+  gap: 4px;
+}
+.project-details .tags span {
+  font-size: 10px;
+  padding: 3px;
+}
+.back-projects {
+  font-size: 10px;
+  padding: 4px;
+  border-color: #997742;
+}
+.repo-link {
+  font-size: 11px;
+  padding: 7px 8px;
+}
+.project-details .detail-top {
+  position: sticky;
+  top: 0;
+  background: #11122a;
+  z-index: 2;
+  padding: 2px 0 5px;
+}
+.skill-wall {
+  left: 0;
+  top: 0;
+  width: 1672px;
+  height: 941px;
+  transform: none;
+  pointer-events: none;
+}
+.skill-wall h2 {
+  position: absolute;
+  left: 1069px;
+  top: 237px;
+  width: 219px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: skewY(26.55deg);
+  transform-origin: top left;
+  font:
+    46px/1 "VT323",
+    monospace;
+  letter-spacing: 1px;
+  margin: 0;
+  pointer-events: auto;
+  text-shadow: 0 0 10px #50fff09c;
+  animation: sign-title 4.7s ease-in-out infinite;
+}
+.skill-grid {
+  display: contents;
+}
+.skill {
+  position: absolute;
+  transform: skewY(26.3deg);
+  transform-origin: top left;
+  border: 0;
+  box-shadow: none;
+  background: transparent !important;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition:
+    filter 0.2s,
+    text-shadow 0.2s;
+  line-height: 1;
+  text-shadow: 0 0 6px color-mix(in srgb, currentColor 50%, transparent);
+  font-family: "VT323", monospace;
+  letter-spacing: 0.1px;
+}
+.skill:nth-child(1) {
+  left: 1031px;
+  top: 326px;
+  width: 120px;
+  height: 23px;
+  font-size: 27px;
+  color: #ffbc80;
+}
+.skill:nth-child(2) {
+  left: 1183px;
+  top: 403px;
+  width: 138px;
+  height: 23px;
+  font-size: 27px;
+  color: #ffda72;
+}
+.skill:nth-child(3) {
+  left: 1048px;
+  top: 389px;
+  width: 106px;
+  height: 26px;
+  font-size: 24px;
+  color: #89fff9;
+  letter-spacing: -0.3px;
+}
+.skill:nth-child(4) {
+  left: 1193px;
+  top: 466px;
+  width: 93px;
+  height: 23px;
+  font-size: 28px;
+  color: #b2fa8e;
+}
+.skill:nth-child(5) {
+  left: 1060px;
+  top: 453px;
+  width: 115px;
+  height: 25px;
+  font-size: 25px;
+  color: #dfaaff;
+}
+.skill:nth-child(6) {
+  left: 1214px;
+  top: 533px;
+  width: 85px;
+  height: 22px;
+  font-size: 21px;
+  color: #c7d1f1;
+  letter-spacing: -0.4px;
+}
+.skill:hover,
+.skill:focus-visible,
+.skill.active {
+  transform: skewY(26.3deg);
+  box-shadow: none;
+  color: white;
+  filter: brightness(1.25);
+  text-shadow:
+    0 0 3px white,
+    0 0 12px currentColor,
+    0 0 20px currentColor;
+}
+.skill:focus-visible {
+  outline: 1px solid white;
+  outline-offset: 3px;
+}
+.skill-readout {
+  position: absolute;
+  left: 1047px;
+  top: 533px;
+  width: 227px;
+  height: 88px;
+  transform: skewY(26.3deg);
+  transform-origin: top left;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  pointer-events: auto;
+  background: transparent;
+  overflow: hidden;
+  color: #91fdf9;
+}
+.skill-readout > span {
+  font:
+    16px "VT323",
+    monospace;
+  letter-spacing: 0.5px;
+}
+.skill-readout p {
+  font:
+    13px/1.25 "VT323",
+    monospace;
+  margin: 3px 0;
+  color: #a6e9ef;
+  max-width: 217px;
+}
+.inventory-link {
+  border: 0;
+  border-bottom: 1px solid #4aafba;
+  background: transparent;
+  color: #c4fffa;
+  font:
+    13px "VT323",
+    monospace;
+  padding: 3px 0;
+  margin-top: 1px;
+}
+.inventory-link:hover {
+  color: white;
+  text-shadow: 0 0 8px #88ffff;
+}
+.terminal {
+  left: 385px;
+  top: 580px;
+  transform: skewY(18deg);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  width: 418px;
+  height: 269px;
+  transition:
+    opacity 0.4s,
+    visibility 0.4s;
+  z-index: 12;
+}
+.camera-terminal .terminal {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  background: #091725f5;
+}
+.terminal-launch {
+  position: absolute;
+  left: 487px;
+  top: 688px;
+  transform: skewY(27deg);
+  transform-origin: top left;
+  width: 101px;
+  height: 44px;
+  z-index: 7;
+  border: 0;
+  background: transparent;
+  color: #a1fdff;
+  text-shadow: 0 0 7px #67e7ef;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font:
+    20px/1 "VT323",
+    monospace;
+}
+.terminal-launch span {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #c2adff;
+}
+.terminal-launch:hover {
+  filter: brightness(1.5);
+  text-shadow: 0 0 12px #6df5ff;
+}
+.camera-terminal .terminal-launch {
+  visibility: hidden;
+}
+.character-label {
+  left: 807px;
+  top: 393px;
+  padding: 5px 8px;
+  font-size: 20px;
+  background: #0e1831bd;
+  border: 1px solid #62778e;
+  box-shadow: none;
+}
+.character-label span {
+  font-size: 7px;
+}
+.github-plaque {
+  left: 1416px;
+  top: 431px;
+  width: 60px;
+  height: 31px;
+  padding: 0;
+  transform: skewY(26.3deg);
+  transform-origin: top left;
+  justify-content: center;
+  font:
+    19px/1 "VT323",
+    monospace;
+  box-shadow: none;
+  border: 0;
+  background: transparent;
+  color: #a9e4ff;
+}
+.github-plaque span,
+.github-plaque small {
+  display: none;
+}
+.github-plaque:hover {
+  background: transparent;
+  box-shadow: none;
+  text-shadow: 0 0 12px #6aeaff;
+}
+.light-cyan {
+  left: 80px;
+  top: 100px;
+  width: 650px;
+  height: 570px;
+}
+.light-purple {
+  left: 990px;
+  top: 130px;
+  width: 570px;
+  height: 540px;
+}
+.light-amber {
+  left: 360px;
+  top: 60px;
+  width: 610px;
+  height: 540px;
+  background: radial-gradient(ellipse, #ffb5321c, transparent 65%);
+}
+.wall-reflection {
+  position: absolute;
+  left: 130px;
+  top: 317px;
+  width: 355px;
+  height: 334px;
+  transform: skewY(-26deg);
+  transform-origin: top left;
+  background: linear-gradient(transparent 30%, #72ffff23 45%, transparent 55%);
+  background-size: 100% 350%;
+  animation: scan 9s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+.camera-projects .project-wall,
+.camera-skills .skill-wall {
+  filter: none;
+}
+@keyframes sign-title {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.28);
+  }
+}
+@media (max-width: 760px) {
+  .camera-projects .project-wall {
+    transform: skewY(-25.46deg);
+    height: 268px;
+    width: 278px;
+  }
+  .camera-projects .project-row {
+    height: 47px;
+  }
+  .camera-projects .project-row strong {
+    font-size: 26px;
+  }
+  .camera-projects .project-row small {
+    font-size: 15px;
+  }
+  .camera-projects .project-number {
+    font-size: 21px;
+  }
+  .camera-projects .project-details {
+    height: 200px;
+  }
+  .camera-projects .project-details p {
+    font-size: 17px;
+  }
+  .camera-projects .project-details h3 {
+    font-size: 26px;
+  }
+  .camera-projects .back-projects {
+    font-size: 10px;
+  }
+  .camera-projects .repo-link {
+    font-size: 11px;
+  }
+  .camera-projects .project-details .tags span {
+    font-size: 10px;
+  }
+  .camera-skills .skill-wall {
+    transform: none;
+    width: 1672px;
+    height: 941px;
+  }
+  .camera-skills .skill-grid {
+    display: contents;
+  }
+  .camera-skills .skill:nth-child(1) {
+    font-size: 27px;
+    height: 23px;
+  }
+  .camera-skills .skill:nth-child(2) {
+    font-size: 27px;
+    height: 23px;
+  }
+  .camera-skills .skill:nth-child(3) {
+    font-size: 24px;
+    height: 26px;
+  }
+  .camera-skills .skill:nth-child(4) {
+    font-size: 28px;
+    height: 23px;
+  }
+  .camera-skills .skill:nth-child(5) {
+    font-size: 25px;
+    height: 25px;
+  }
+  .camera-skills .skill:nth-child(6) {
+    font-size: 21px;
+    height: 22px;
+  }
+  .camera-skills .skill-readout {
+    height: 88px;
+  }
+  .camera-skills .skill-readout > span {
+    font-size: 16px;
+  }
+  .camera-skills .skill-readout p {
+    font-size: 13px;
+  }
+  .camera-terminal .terminal {
+    transform: skewY(18deg);
+    height: 269px;
+  }
+  .camera-terminal .terminal-content p,
+  .camera-terminal .terminal-home p {
+    font-size: 17px;
+  }
+  .camera-terminal .terminal-nav button {
+    font-size: 13px;
+  }
+  .camera-terminal .terminal-greeting {
+    font-size: 17px;
+  }
+  .camera-terminal .terminal-action,
+  .camera-terminal .terminal-content .link-btn {
+    font-size: 12px;
+  }
+}
+.project-row:nth-child(3) strong {
+  font-size: 23px;
+  letter-spacing: 0;
+}
+.skill:nth-child(3),
+.camera-skills .skill:nth-child(3) {
+  font-size: 21px;
+}
+@media (max-width: 760px) {
+  .camera-projects .project-row:nth-child(3) strong {
+    font-size: 23px;
+  }
+  .camera-terminal .terminal-content p,
+  .camera-terminal .terminal-home p {
+    font-size: 21px;
+  }
+}
+/*
+ * 17. MORONA. Posición del husky, mensaje de descubrimiento, salto y corazones.
+ */
+
+.morona {
+  position: absolute;
+  left: 1384px;
+  top: 642px;
+  width: 116px;
+  height: 143px;
+  z-index: 10;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  transform-origin: 50% 95%;
+  overflow: visible;
+}
+.morona img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  pointer-events: none;
+  filter: drop-shadow(0 5px 3px #03071288);
+  transition: filter 0.2s;
+}
+.morona:after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+.morona:hover img,
+.morona:focus-visible img {
+  filter: drop-shadow(0 0 7px #ffd59399);
+}
+.morona-hint {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 3px 7px;
+  background: #14172ddd;
+  border: 1px solid #ac9466;
+  color: #ffe0a7;
+  font:
+    19px "VT323",
+    monospace;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.morona:hover .morona-hint,
+.morona:focus-visible .morona-hint {
+  opacity: 1;
+}
+.morona.celebrate img {
+  animation: morona-hop 0.55s ease-out;
+}
+.morona-hearts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.morona-hearts i {
+  position: absolute;
+  top: 30%;
+  left: 10%;
+  font:
+    28px "VT323",
+    monospace;
+  color: #ffb2c6;
+  text-shadow: 0 0 7px #f878ac;
+  font-style: normal;
+  opacity: 0;
+}
+.morona-hearts i:nth-child(2) {
+  left: 45%;
+}
+.morona-hearts i:nth-child(3) {
+  left: 78%;
+}
+.morona.celebrate .morona-hearts i {
+  animation: morona-love 1.2s ease-out forwards;
+}
+.morona.celebrate .morona-hearts i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.morona.celebrate .morona-hearts i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.morona-note {
+  position: fixed;
+  right: 24px;
+  bottom: 106px;
+  z-index: 30;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  padding: 22px;
+  background: #11192cf5;
+  border: 2px solid #f2c889;
+  box-shadow:
+    4px 4px 0 #080c19,
+    0 0 24px #edc27e20;
+  color: #e9f5ff;
+}
+.morona-note[hidden] {
+  display: none;
+}
+.morona-close {
+  position: absolute;
+  right: 7px;
+  top: 5px;
+  border: 0;
+  background: transparent;
+  color: #d1dae9;
+  width: 32px;
+  height: 32px;
+  font-size: 26px;
+  line-height: 1;
+}
+.morona-close:hover {
+  color: #ffe0a7;
+}
+.morona-achievement {
+  font:
+    10px "Space Mono",
+    monospace;
+  letter-spacing: 1px;
+  color: #e4b773;
+  padding-right: 14px;
+  display: block;
+}
+.morona-note h2 {
+  font:
+    30px/1.05 "VT323",
+    monospace;
+  color: #ffe0a7;
+  margin: 14px 0 10px;
+}
+.morona-note p {
+  font:
+    16px/1.55 "Space Mono",
+    monospace;
+  color: #c6d7e9;
+  margin: 0 0 16px;
+}
+.morona-note #morona-pet {
+  background: #243549;
+  border: 1px solid #70b1b4;
+  color: #aefff4;
+  padding: 10px 12px;
+  font:
+    13px "Space Mono",
+    monospace;
+}
+.morona-note #morona-pet:hover {
+  background: #314856;
+  color: #fff;
+}
+@keyframes morona-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-7px) rotate(-3deg);
+  }
+  70% {
+    transform: translateY(-2px) rotate(2deg);
+  }
+}
+@keyframes morona-love {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.7);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-85px) scale(1.2);
+  }
+}
+@media (max-width: 760px) {
+  .morona:after {
+    inset: -40px;
+  }
+  .morona-note {
+    right: 16px;
+    bottom: 104px;
+    padding: 18px;
+  }
+  .morona-note h2 {
+    font-size: 29px;
+  }
+  .morona-note p {
+    font-size: 16px;
+  }
+}
+/*
+ * 18. ENCUADRE DEL PNG. Compensa el margen transparente de Morona mediante CSS, sin
+ * recortar el archivo original.
+ */
+
+.morona img {
+  position: absolute;
+  left: -40px;
+  top: -20px;
+  width: 206px;
+  height: 164px;
+  max-width: none;
+  object-fit: fill;
+}

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+  <!-- 01. CONFIGURACIÓN. Idioma, título de pestaña, descripción, icono y hoja de estilos. -->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#060916" />
+    <meta
+      name="description"
+      content="Entra al laboratorio de Christian Pinal Cordero, desarrollador Java Full Stack Jr. Proyectos y habilidades en una habitación interactiva de neón."
+    />
+    <title>Christian Pinal | Dev Room</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2312112c' d='M0 0h32v32H0z'/%3E%3Cpath fill='none' stroke='%236ee9ed' stroke-width='3' d='m12 9-7 7 7 7m8-14 7 7-7 7'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <!-- 02. ACCESO Y HUD. Enlace de teclado, nombre del jugador, pausa de animaciones y descarga del CV. -->
+  <body>
+    <a class="skip" href="#project-list">Explorar proyectos</a>
+    <header class="hud">
+      <div class="player">
+        <span class="player-id">PLAYER 01</span>
+        <h1>CHRISTIAN PINAL<span>CORDERO</span></h1>
+        <div class="player-role">JAVA FULL STACK JR.</div>
+        <div class="energy" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+      <div class="hud-tools">
+        <button id="motion" aria-pressed="false" title="Pausar las animaciones">
+          Ⅱ <span>Neón activo</span></button
+        ><a
+          href="assets/Christian-Pinal-CV.pdf"
+          download
+          title="Descargar currículum"
+          >↓ <span>CV</span></a
+        >
+      </div>
+    </header>
+    <!-- 03. ESCENARIO. La ilustración forma la habitación; los botones y textos siguientes son HTML interactivo colocado sobre los letreros vacíos. -->
+    <main class="viewport" aria-label="Habitación interactiva del portafolio">
+      <div class="world" id="world">
+        <img
+          class="room-art"
+          src="assets/room-integrated.png"
+          width="1672"
+          height="941"
+          alt="Habitación gamer isométrica de pixel art con personaje fijo, monitores, plantas y muebles"
+        />
+        <div class="room-light light-cyan" aria-hidden="true"></div>
+        <div class="room-light light-purple" aria-hidden="true"></div>
+        <div class="room-light light-amber" aria-hidden="true"></div>
+        <div class="particles" aria-hidden="true" id="particles"></div>
+        <!-- 04. PROYECTOS. app.js llena project-list con los proyectos o sus detalles. -->
+        <section
+          class="wall project-wall"
+          id="projects"
+          aria-labelledby="projects-title"
+        >
+          <h2 id="projects-title">[ PROYECTOS ]</h2>
+          <div id="project-list" tabindex="-1"></div>
+          <div class="wall-base">
+            <span class="signal"><i></i><i></i><i></i><i></i></span
+            ><span id="project-status">SELECCIONA UNA MISIÓN</span><b>LIVE</b>
+          </div>
+        </section>
+        <!-- 05. SKILLS. Las placas se generan con JavaScript; el texto inferior cambia al seleccionar una tecnología. -->
+        <section
+          class="wall skill-wall"
+          id="skills"
+          aria-labelledby="skills-title"
+        >
+          <h2 id="skills-title">[ SKILLS ]</h2>
+          <div class="skill-grid" id="skill-grid"></div>
+          <div class="skill-readout" aria-live="polite">
+            <span id="skill-name">MI STACK</span>
+            <p id="skill-description">
+              Pasa el mouse o selecciona una tecnología.
+            </p>
+            <button class="inventory-link" data-terminal="skills">
+              Ver inventario completo
+            </button>
+          </div>
+        </section>
+        <!-- 06. TERMINAL. El monitor abre perfil, trayectoria, contacto e inventario dentro de la misma habitación. -->
+        <button
+          class="terminal-launch"
+          data-camera="terminal"
+          aria-label="Abrir terminal de información"
+        >
+          &gt; CHRIS<span>TERMINAL</span>
+        </button>
+        <section
+          class="terminal"
+          id="terminal"
+          aria-labelledby="terminal-title"
+        >
+          <div class="terminal-bar">
+            <span id="terminal-title">CHRIS@DEV:~</span
+            ><span class="terminal-leds" aria-hidden="true">▪ ▪ ▪</span
+            ><button
+              class="zoom"
+              data-camera="terminal"
+              aria-label="Acercar terminal"
+            >
+              ⛶
+            </button>
+          </div>
+          <nav class="terminal-nav" aria-label="Información profesional">
+            <button data-terminal="home" aria-pressed="true">Inicio</button
+            ><button data-terminal="about" aria-pressed="false">Perfil</button
+            ><button data-terminal="career" aria-pressed="false">
+              Trayectoria</button
+            ><button data-terminal="contact" aria-pressed="false">
+              Contacto
+            </button>
+          </nav>
+          <div
+            class="terminal-content"
+            id="terminal-content"
+            tabindex="0"
+          ></div>
+          <div class="terminal-bottom">
+            <span>Metepec, México</span><span class="cursor">█</span>
+          </div>
+        </section>
+        <div class="wall-reflection" aria-hidden="true"></div>
+        <!-- 07. ACCESOS DEL ESCENARIO. El nombre del personaje abre el perfil y el letrero del librero enlaza a GitHub. -->
+        <button
+          class="character-label"
+          data-terminal="about"
+          title="Conocer a Christian"
+        >
+          CHRIS<span>JAVA FULL STACK JR.</span>
+        </button>
+        <a
+          class="github-plaque"
+          href="https://github.com/ChrisPort12"
+          target="_blank"
+          rel="noopener noreferrer"
+          ><span>〈/〉</span>GITHUB<small>ChrisPort12</small></a
+        >
+        <!-- 08. MORONA. Imagen transparente y botón que activa el easter egg; los corazones son decorativos. -->
+        <button
+          class="morona"
+          id="morona"
+          aria-label="Descubrir a Morona, el husky café"
+          aria-controls="morona-note"
+          aria-expanded="false"
+        >
+          <img
+            src="assets/morona.png"
+            alt="Morona, un pequeño husky café y crema en pixel art"
+            width="140"
+            height="160"
+          /><span class="morona-hint" aria-hidden="true">¿Morona?</span
+          ><span class="morona-hearts" aria-hidden="true"
+            ><i>♥</i><i>♥</i><i>♥</i></span
+          >
+        </button>
+        <div class="floor-glow" aria-hidden="true"></div>
+      </div>
+    </main>
+    <!-- 09. MENÚ INFERIOR. Selecciona la vista general o acerca proyectos, skills y terminal. -->
+    <footer class="controls">
+      <div class="room-caption">
+        <span class="status-light"></span
+        ><span id="room-caption">EXPLORA LAS PAREDES Y PANTALLAS</span>
+      </div>
+      <nav class="camera-controls" aria-label="Recorrer la habitación">
+        <button data-camera="overview" aria-pressed="true">Habitación</button
+        ><button data-camera="projects" aria-pressed="false">Proyectos</button
+        ><button data-camera="skills" aria-pressed="false">Skills</button
+        ><button data-camera="terminal" aria-pressed="false">Terminal</button>
+      </nav>
+      <button class="back-room" id="back-room" hidden>
+        Volver a la habitación <kbd>ESC</kbd>
+      </button>
+    </footer>
+    <!-- 10. DESCUBRIMIENTO. Mensaje oculto hasta encontrar a Morona y botón para darle una caricia. -->
+    <aside
+      class="morona-note"
+      id="morona-note"
+      aria-labelledby="morona-title"
+      hidden
+    >
+      <button
+        class="morona-close"
+        id="morona-close"
+        aria-label="Cerrar descubrimiento de Morona"
+      >
+        ×</button
+      ><span class="morona-achievement">SECRETO DESCUBIERTO · 01/01</span>
+      <h2 id="morona-title">¡Encontraste a Morona!</h2>
+      <p id="morona-message" role="status">
+        Guardiana del código y experta en pedir premios.
+      </p>
+      <button id="morona-pet">Darle una caricia ♥</button>
+    </aside>
+    <!-- 11. ENTRADA Y AVISOS. Animación inicial y texto accesible para lectores de pantalla. -->
+    <div class="boot" aria-hidden="true">
+      <span>CHRIS.DEV</span><small>ENCENDIENDO EL LABORATORIO</small><i></i>
+    </div>
+    <div class="sr-only" aria-live="polite" id="announcement"></div>
+    <!-- 12. ORDEN DE CARGA. Primero se cargan los datos y después los eventos; el HTML ya existe cuando se ejecuta app.js. -->
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
