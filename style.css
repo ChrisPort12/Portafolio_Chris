@@ -1130,7 +1130,21 @@ h1 span {
   transform-origin: left;
   visibility: hidden;
 }
-.boot[hidden] { display: none; }
+.boot[hidden], .boot-actions[hidden] { display: none; }
+.boot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 28px;
+}
+.boot-actions button {
+  padding: 12px 18px;
+  color: var(--cyan);
+  background: #10203b;
+  border: 1px solid #608ba8;
+}
+.boot-actions button:hover { background: #1d3249; }
 .boot.loading i {
   visibility: visible;
   animation: load 3s linear forwards;

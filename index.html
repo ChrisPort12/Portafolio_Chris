@@ -214,9 +214,13 @@
       <button id="morona-pet">Darle una caricia ♥</button>
     </aside>
     <!-- 11. ENTRADA Y AVISOS. Animación inicial y texto accesible para lectores de pantalla. -->
-    <div class="boot" aria-label="Cargando el laboratorio" hidden>
+    <div class="boot" role="dialog" aria-modal="true" aria-label="Bienvenido al laboratorio" tabindex="-1" hidden>
       <span>CHRIS.DEV</span>
-      <small id="boot-status" role="status">ENCENDIENDO EL LABORATORIO</small>
+      <small id="boot-status" role="status">TU SIGUIENTE MISIÓN EMPIEZA AQUÍ</small>
+      <div class="boot-actions">
+        <button type="button" id="enter-sound">Entrar con sonido</button>
+        <button type="button" id="enter-silent">Entrar sin sonido</button>
+      </div>
       <i aria-hidden="true"></i>
     </div>
     <div class="sr-only" aria-live="polite" id="announcement"></div>

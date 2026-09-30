@@ -386,8 +386,8 @@ document
  */
 const soundButton = document.querySelector("#sound-toggle");
 const musicButton = document.querySelector("#music-toggle");
-let soundEnabled = true;
-let musicEnabled = true;
+let soundEnabled = false;
+let musicEnabled = false;
 const effects = Object.fromEntries(Object.entries({
   click: "click-ui.mp3",
   project: "project-open.mp3",
@@ -462,23 +462,28 @@ document.addEventListener("visibilitychange", () => {
   } else resumeMusic();
 });
 
-/* INTRODUCCIÓN. Comienza directamente; cuando el navegador permite el audio,
- * la barra se sincroniza con tres segundos de reproducción. Si lo bloquea,
- * la carga continúa en silencio, sin botones ni avisos adicionales.
+/* INTRODUCCIÓN. La elección inicial permite activar el audio con un gesto.
+ * Después se muestran tres segundos de carga, con o sin sonido.
+ * La música y los efectos se pueden cambiar por separado dentro del portafolio.
  */
 const boot = document.querySelector(".boot");
 const pageRegions = [...document.querySelectorAll(".hud, .viewport, .controls, .skip")];
+const bootActions = document.querySelector(".boot-actions");
+let introStarted = false;
 let introTimer;
 let introPending = false;
 pageRegions.forEach((region) => { region.inert = true; });
 boot.hidden = false;
+document.querySelector("#enter-sound").focus();
 
 function finishIntro() {
   boot.hidden = true;
   effects.intro.pause();
   effects.intro.currentTime = 0;
   pageRegions.forEach((region) => { region.inert = false; });
+  music.volume = MUSIC_VOLUME;
   resumeMusic();
+  document.querySelector('.camera-controls [data-camera="overview"]').focus({ preventScroll: true });
 }
 function resetIntroClock() {
   clearTimeout(introTimer);
@@ -501,8 +506,25 @@ function tryIntro() {
     // Si se bloquea o falla el audio, la animación termina normalmente.
   }).finally(() => { introPending = false; });
 }
-resetIntroClock();
-tryIntro();
+function startIntro(withSound) {
+  if (introStarted) return;
+  introStarted = true;
+  soundEnabled = withSound;
+  musicEnabled = withSound;
+  updateAudioButtons();
+  bootActions.hidden = true;
+  document.querySelector("#boot-status").textContent = "ENCENDIENDO EL LABORATORIO";
+  boot.focus();
+  resetIntroClock();
+  if (withSound) {
+    tryIntro();
+    // Desbloquea la música en el mismo clic; se escucha al terminar la intro.
+    music.volume = 0;
+    resumeMusic();
+  }
+}
+document.querySelector("#enter-sound").addEventListener("click", () => startIntro(true));
+document.querySelector("#enter-silent").addEventListener("click", () => startIntro(false));
 
 // Se ejecuta después de los botones para respetar cualquier decisión de silenciar.
 function unlockBackground(event) {
