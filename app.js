@@ -205,33 +205,43 @@ document
  * al personaje.
  */
 function cameraTransform() {
-  const w = document.documentElement.clientWidth;
-  const h = document.documentElement.clientHeight;
+  const viewport = document.querySelector(".viewport").getBoundingClientRect();
+  const w = viewport.width;
+  const h = viewport.height;
   const mobile = w <= 760;
+  const landscape = window.matchMedia("(max-height: 540px) and (min-aspect-ratio: 4/3)").matches;
   let scale, cx, cy;
   if (camera === "overview") {
+    world.style.left = "50%";
     world.style.top = "50%";
     scale = Math.min(w / 1672, h / 941) * 0.985;
     cx = 836;
     cy = 470.5;
   } else {
-    // Reserva el espacio real del encabezado y de ambos controles inferiores.
-    const top = document.querySelector(".hud").getBoundingClientRect().bottom + 16;
-    const bottom = document.querySelector(".controls").getBoundingClientRect().top - 24;
+    const header = document.querySelector(".hud").getBoundingClientRect();
+    const controls = document.querySelector(".controls").getBoundingClientRect();
+    const back = document.querySelector("#back-room").getBoundingClientRect();
+    // En horizontal, los controles ocupan los laterales y liberan la altura.
+    const left = landscape ? header.right - viewport.left + 12 : 12;
+    const right = landscape ? controls.left - viewport.left - 12 : w - 12;
+    const top = landscape ? 12 : header.bottom - viewport.top + 12;
+    const bottom = landscape ? h - 12
+      : Math.min(controls.top, back.top) - viewport.top - 12;
+    const width = Math.max(1, right - left);
     const height = Math.max(1, bottom - top);
-    world.style.top = `${top + height / 2}px`;
     const targets = {
       projects: { x: 655, y: 326, w: 345, h: 468 },
       skills: { x: 1180, y: 428, w: 390, h: 455 },
       terminal: { x: 594, y: 767, w: 470, h: 365 },
     };
     const target = targets[camera];
-    scale = Math.min((w - (mobile ? 26 : 100)) / target.w,
-      height / target.h, mobile ? 1.65 : 1.85);
+    world.style.left = `${left + width / 2}px`;
+    world.style.top = `${top + height / 2}px`;
+    scale = Math.min(width / target.w, height / target.h, mobile ? 1.65 : 1.85);
     cx = target.x;
     cy = target.y;
   }
-  world.style.setProperty("--scale", String(Math.max(0.1, scale)));
+  world.style.setProperty("--scale", String(Math.max(0.01, scale)));
   world.style.setProperty("--cx", String(cx));
   world.style.setProperty("--cy", String(cy));
 }
@@ -312,10 +322,21 @@ for (let i = 0; i < 22; i++) {
  * inicial y mantiene visible la zona que recibe el foco del teclado.
  */
 let resizeFrame;
-window.addEventListener("resize", () => {
+function scheduleCameraResize() {
   cancelAnimationFrame(resizeFrame);
   resizeFrame = requestAnimationFrame(cameraTransform);
-});
+}
+window.addEventListener("resize", scheduleCameraResize);
+window.visualViewport?.addEventListener("resize", scheduleCameraResize);
+window.addEventListener("orientationchange", scheduleCameraResize);
+// Recalcula cuando termina de cambiar el tamaño real de la pantalla o los controles.
+if ("ResizeObserver" in window) {
+  const cameraResizeObserver = new ResizeObserver(scheduleCameraResize);
+  [".viewport", ".hud", ".controls"].forEach((selector) => {
+    cameraResizeObserver.observe(document.querySelector(selector));
+  });
+}
+document.fonts?.ready.then(scheduleCameraResize);
 document.addEventListener("DOMContentLoaded", () => {
   showProjectList();
   showTerminal("home", false);

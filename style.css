@@ -1053,8 +1053,8 @@ h1 span {
   background: #1d3249;
 }
 .back-room {
-  position: static;
-  order: 3;
+  position: absolute;
+  bottom: calc(100% + 10px);
   background: #10203bef;
   border: 1px solid #608ba8;
   color: var(--cyan);
@@ -2367,6 +2367,66 @@ h1 span {
   }
 }
 
+/*
+ * 18.1. ENCUADRE EN TELÉFONOS. Encabezado compacto en vertical y controles
+ * laterales al acercar una sección en horizontal. Libera espacio para leer.
+ */
+@media (max-width: 480px) {
+  .hud .player { padding: 8px; }
+  .hud .player h1 { font-size: 21px; }
+  .hud .player-role { font-size: 7px; letter-spacing: 0; }
+  .hud .hud-tools { gap: 4px; }
+  .hud .hud-tools button, .hud .hud-tools a { padding: 8px 6px; }
+  .hud .hud-tools #sound-toggle, .hud .hud-tools #music-toggle { width: 34px; }
+}
+@media (max-height: 540px) and (min-aspect-ratio: 4/3) {
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .hud {
+    inset: 12px auto auto 12px;
+    width: 44px;
+  }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .player { display: none; }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .hud-tools {
+    flex-direction: column;
+    gap: 6px;
+  }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .hud-tools button,
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .hud-tools a {
+    width: 44px;
+    min-height: 36px;
+    padding: 6px;
+    text-align: center;
+  }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) #motion span,
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .hud-tools a span { display: none; }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .controls {
+    top: 12px;
+    bottom: auto;
+    right: 12px;
+    left: auto;
+    transform: none;
+    width: 124px;
+    gap: 8px;
+  }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .camera-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .camera-controls button {
+    padding: 8px 6px;
+    font-size: 11px;
+    min-height: 34px;
+    border-left: 0;
+  }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .back-room {
+    position: static;
+    order: -1;
+    white-space: normal;
+    width: 100%;
+    padding: 8px;
+    font-size: 10px;
+  }
+  body:is(.camera-projects, .camera-skills, .camera-terminal) .back-room kbd { display: none; }
+}
 /*
  * 19. SONIDO. Controles compactos independientes para efectos y música.
  * Conservan la altura de los botones vecinos y muestran si están activos.
